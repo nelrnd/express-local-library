@@ -19,4 +19,18 @@ AuthorSchema.virtual("url").get(function () {
   return `/catalog/author/${this._id}`
 })
 
+AuthorSchema.virtual("lifespan").get(function () {
+  let dates = ""
+  if (!this.date_of_birth) {
+    return "unknown"
+  }
+  dates += this.date_of_birth.getFullYear() + " - "
+  if (this.date_of_death) {
+    dates += this.date_of_death.getFullYear()
+  } else {
+    dates += "now"
+  }
+  return dates
+})
+
 module.exports = mongoose.model("Author", AuthorSchema)
