@@ -51,7 +51,9 @@ exports.genre_create_post = [
       })
       return
     } else {
-      const genreExists = await Genre.findOne({ name: req.body.name }).exec()
+      const genreExists = await Genre.findOne({ name: req.body.name })
+        .collation({ locale: "en", strength: 2 })
+        .exec()
       if (genreExists) {
         res.redirect(genreExists.url)
       } else {
