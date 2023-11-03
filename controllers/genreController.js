@@ -65,17 +65,78 @@ exports.genre_create_post = [
 ]
 
 exports.genre_delete_get = asyncHandler(async (req, res, next) => {
-  res.send("Not implemented yet - Genre delete GET")
+  const [genre, allGenreBooks] = await Promise.all([
+    Genre.findById(req.params.id).exec(),
+    Book.find({ genre: req.params.id }).exec(),
+  ])
+
+  if (genre === null) {
+    res.redirect("/catalog/genres")
+  }
+
+  res.render("genre_delete", {
+    title: "Delete genre",
+    genre: genre,
+    genre_books: allGenreBooks,
+  })
 })
 
 exports.genre_delete_post = asyncHandler(async (req, res, next) => {
-  res.send("Not implemented yet - Genre delete POST")
+  const [genre, allGenreBooks] = await Promise.all([
+    Genre.findById(req.params.id).exec(),
+    Book.find({ genre: req.params.id }).exec(),
+  ])
+
+  if (allGenreBooks.length > 0) {
+    res.render("genre_delete", {
+      title: "Delete genre",
+      genre: genre,
+      genre_books: allGenreBooks,
+    })
+    return
+  } else {
+    await Genre.findByIdAndRemove(req.body.genreid)
+    res.redirect("/catalog/genres")
+  }
 })
 
 exports.genre_update_get = asyncHandler(async (req, res, next) => {
-  res.send("Not implemented yet - Genre update GET")
+  const genre = await Genre.findById(req.params.id).exec()
+
+  if (genre === null) {
+    const err = new Error("Genre not found")
+    err.status = 404
+    return next(err)
+  }
+
+  res.render("genre_form", { title: "Update genre", genre: genre })
 })
 
-exports.genre_update_post = asyncHandler(async (req, res, next) => {
-  res.send("Not implemented yet - Genre update POST")
-})
+exports.genre_update_post = [
+  // Validate and sanitize the name field
+  body("name", "Genre name must contain at least 3 characters")
+    .trim()
+    .isLength({ min: 3 })
+    .escape(),
+  // Process request after validation and sanitization
+  asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req)
+
+    const genre = new Genre({
+      name: req.body.name,
+      _id: req.params.id,
+    })
+
+    if (!errors.isEmpty()) {
+      res.render("genre_form", {
+        title: "Update genre",
+        genre: genre,
+        errors: errors.array(),
+      })
+      return
+    } else {
+      const updatedGenre = await Genre.findByIdAndUpdate(req.params.id, genre)
+      res.redirect(updatedGenre.url)
+    }
+  }),
+]
