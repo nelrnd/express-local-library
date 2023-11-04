@@ -109,8 +109,6 @@ exports.bookinstance_update_get = asyncHandler(async (req, res, next) => {
     return next(err)
   }
 
-  console.log(bookInstance.book._id)
-
   res.render("bookinstance_form", {
     title: "Update book instance",
     bookinstance: bookInstance,
